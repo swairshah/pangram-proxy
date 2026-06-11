@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pangram AI Text Detection — x402 API</title>
+<meta name="description" content="Detect AI-generated text via Pangram Labs. Pay per request in USDC over the x402 protocol — no API keys, no signup. $0.10 per 1,000 words.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Imbue:opsz,wght@10..100,300;10..100,400;10..100,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #ff6106;
+    --ink: #090a0b;
+    --paper: #f8f7f6;
+    --peach: #fecab9;
+    --green: #004038;
+    --green-deep: #002b24;
+    --yellow: #ffe782;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 28px 0; display: flex; align-items: center; justify-content: space-between; }
+  header img { height: 36px; display: block; }
+  .cobrand {
+    display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+  }
+  .cobrand img { height: 26px; width: 26px; }
+  .cobrand .word {
+    color: var(--ink); font-size: 19px; font-weight: 600;
+    letter-spacing: 0.10em; text-transform: uppercase;
+  }
+  .hero { padding: 64px 0 48px; }
+  h1 {
+    font-family: "Imbue", serif;
+    font-weight: 400;
+    font-size: clamp(52px, 9vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+  }
+  h1 em { font-style: normal; color: var(--orange); }
+  .hero p.sub {
+    margin-top: 24px; font-size: 19px; max-width: 56ch; color: #3a3c3e;
+  }
+  .hl {
+    background: var(--peach); color: var(--ink); font-weight: 600;
+    padding: 1px 7px; border-radius: 7px; white-space: nowrap;
+  }
+  .pills { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    font-size: 14px; font-weight: 500; padding: 7px 16px; border-radius: 999px;
+    border: 1.5px solid var(--ink); background: transparent;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .pill.hot { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .pill.soft { background: var(--peach); border-color: var(--peach); }
+  .pill img { height: 17px; width: 17px; }
+  .price-card {
+    margin: 56px 0; background: var(--green); color: var(--paper);
+    border-radius: 20px; padding: 40px; display: flex; gap: 40px;
+    align-items: center; flex-wrap: wrap;
+  }
+  .price-card .amount {
+    font-family: "Imbue", serif; font-size: 72px; line-height: 1; color: var(--yellow);
+    display: flex; align-items: center; gap: 18px;
+  }
+  .price-card .amount img { height: 52px; width: 52px; }
+  .price-card .per { font-size: 16px; opacity: 0.85; max-width: 34ch; }
+  h2 {
+    font-family: "Imbue", serif; font-weight: 400; font-size: 40px;
+    margin: 64px 0 20px;
+  }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .step {
+    background: #fff; border: 1.5px solid #e7e4e1; border-radius: 16px; padding: 24px;
+  }
+  .step .n {
+    font-family: "Imbue", serif; font-size: 34px; color: var(--orange); line-height: 1;
+  }
+  .step h3 { font-size: 16px; margin: 10px 0 6px; }
+  .step p { font-size: 14.5px; color: #4a4c4e; }
+  pre {
+    background: var(--ink); color: #e8e6e3; border-radius: 14px;
+    padding: 22px 24px; overflow-x: auto; font-size: 13.5px; line-height: 1.7;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  pre .c { color: #8a8d91; }
+  pre .o { color: var(--peach); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1.5px solid #e7e4e1; }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #6a6c6e; }
+  td code { background: #efedeb; padding: 2px 8px; border-radius: 6px; font-size: 13.5px; }
+  .free { color: var(--green); font-weight: 600; }
+  .paid { color: var(--orange); font-weight: 600; }
+  a { color: var(--green); text-decoration-color: var(--peach); text-decoration-thickness: 2px; }
+  footer {
+    margin-top: 80px; padding: 36px 0 48px; border-top: 1.5px solid #e7e4e1;
+    font-size: 14px; color: #6a6c6e; display: flex; justify-content: space-between;
+    align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  footer .pay-by { display: inline-flex; align-items: center; gap: 7px; }
+  footer .pay-by img { height: 18px; width: 18px; }
+  footer .pay-by a { margin: 0 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="https://www.pangram.com" aria-label="Pangram Labs"><img src="/pangram-logo.svg" alt="Pangram"></a>
+    <a class="cobrand" href="https://www.circle.com" aria-label="Circle">
+      <img src="/circle.svg" alt=""><span class="word">Circle</span>
+    </a>
+  </header>
+
+  <section class="hero">
+    <h1>Is it <em>AI</em>,<br>or is it human?</h1>
+    <p class="sub">
+      State-of-the-art AI-text detection, powered by
+      <a href="https://www.pangram.com">Pangram Labs</a> — as a pay-per-request API.
+      No API keys, no signup, no subscription. Your agent pays a dime in USDC over
+      the <span class="hl">x402 protocol</span> and gets a verdict back in seconds.
+    </p>
+    <div class="pills">
+      <span class="pill hot">x402 protocol</span>
+      <span class="pill"><img src="/usdc.svg" alt="USDC">USDC on 11 chains</span>
+      <span class="pill soft"><img src="/circle.svg" alt="Circle">Circle Gateway</span>
+      <span class="pill">No account needed</span>
+    </div>
+  </section>
+
+  <div class="price-card">
+    <div class="amount"><img src="/usdc.svg" alt="USDC">$0.10</div>
+    <div class="per">
+      per 1,000 words, rounded up. Deterministic — <code>/quote</code> tells you the exact
+      price before you pay. Short text? Still just ten cents.
+    </div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="n">1</div>
+      <h3>Ask</h3>
+      <p>POST your text to <code>/detect</code>. The server replies <strong>402 Payment Required</strong> with signed payment requirements.</p>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <h3>Pay</h3>
+      <p>Your agent signs a USDC authorization (Circle Gateway, gas-free) and retries the same request.</p>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <h3>Know</h3>
+      <p>Payment settles, Pangram analyzes the text, and you get the verdict with per-window confidence scores.</p>
+    </div>
+  </div>
+
+  <h2>Try it</h2>
+  <pre><span class="c"># Free: get the exact price for your text</span>
+curl -X POST https://pangram.exe.xyz/quote \
+  -H <span class="o">'content-type: application/json'</span> \
+  -d <span class="o">'{"text":"...your text..."}'</span>
+
+<span class="c"># Paid: detect, using the Circle CLI agent wallet</span>
+circle services pay https://pangram.exe.xyz/detect -X POST \
+  --address <span class="o">&lt;your-wallet&gt;</span> --chain BASE \
+  --data <span class="o">'{"text":"...your text..."}'</span> --output json</pre>
+
+  <h2>Endpoints</h2>
+  <table>
+    <tr><th>Endpoint</th><th>Price</th><th>What it does</th></tr>
+    <tr><td><code>POST /detect</code></td><td class="paid">$0.10 / 1k words</td><td>AI-text detection via Pangram</td></tr>
+    <tr><td><code>POST /quote</code></td><td class="free">free</td><td>Exact price for a payload</td></tr>
+    <tr><td><code>GET /</code></td><td class="free">free</td><td>Service manifest (JSON, for agents)</td></tr>
+    <tr><td><code>GET /openapi.json</code></td><td class="free">free</td><td>OpenAPI 3.1 specification</td></tr>
+  </table>
+
+  <footer>
+    <span>Built on <a href="https://www.pangram.com">Pangram Labs</a> detection technology, used with permission.</span>
+    <span class="pay-by"><img src="/usdc.svg" alt="USDC"><img src="/circle.svg" alt="Circle">USDC payments via <a href="https://www.circle.com">Circle</a> Gateway</span>
+    <span><a href="/openapi.json">OpenAPI spec</a> · <a href="https://agents.circle.com">Circle agent marketplace</a></span>
+  </footer>
+</div>
+</body>
+</html>

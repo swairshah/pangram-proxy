@@ -1,0 +1,125 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pangram AI Text Detection",
+    "version": "1.0.0",
+    "description": "Detect AI-generated, AI-assisted, and human-written text via Pangram Labs. Payment per request via the x402 protocol (USDC, Circle Gateway facilitator, GatewayWalletBatched scheme). Price: $0.10 per 1,000 words, rounded up; same body always quotes the same price. Unpaid requests to the paid endpoint receive HTTP 402 with a base64 PAYMENT-REQUIRED header listing payment requirements; clients retry with a payment-signature header.",
+    "contact": { "email": "swairshah@gmail.com" }
+  },
+  "servers": [{ "url": "https://pangram.exe.xyz" }],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Service manifest (free)",
+        "operationId": "getManifest",
+        "responses": {
+          "200": {
+            "description": "Service metadata: payment protocol, facilitator, seller address, pricing, endpoint list.",
+            "content": { "application/json": {} }
+          }
+        }
+      }
+    },
+    "/quote": {
+      "post": {
+        "summary": "Price quote for a payload (free)",
+        "operationId": "getQuote",
+        "requestBody": { "$ref": "#/components/requestBodies/TextBody" },
+        "responses": {
+          "200": {
+            "description": "Word count and exact price the paid call will charge for this body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "words": { "type": "integer", "example": 850 },
+                    "price": { "type": "string", "example": "$0.10" },
+                    "currency": { "type": "string", "example": "USDC" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "422": { "$ref": "#/components/responses/Unprocessable" }
+        }
+      }
+    },
+    "/detect": {
+      "get": {
+        "summary": "Payment-requirements probe (for crawlers/inspectors)",
+        "operationId": "probeDetect",
+        "responses": {
+          "402": {
+            "description": "Payment requirements at the minimum price, in the base64 PAYMENT-REQUIRED header (x402)."
+          }
+        }
+      },
+      "post": {
+        "summary": "AI-text detection (paid: $0.10 per 1,000 words, rounded up)",
+        "operationId": "detect",
+        "description": "x402-paid endpoint. Without a valid payment-signature header, responds 402 with payment requirements (11 mainnet chains, USDC, GatewayWalletBatched). With a settled payment, runs Pangram Labs detection and returns the full result.",
+        "requestBody": { "$ref": "#/components/requestBodies/TextBody" },
+        "responses": {
+          "200": {
+            "description": "Pangram detection result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "prediction": { "type": "string", "example": "AI Generated", "description": "Overall verdict: e.g. AI Generated, Human Written, Mixed." },
+                    "fraction_ai": { "type": "number", "example": 1.0, "description": "Fraction of the text classified as AI-generated (0–1)." },
+                    "windows": {
+                      "type": "array",
+                      "description": "Per-window analysis with AI likelihood and AI-assistance scores.",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment required. Base64 PAYMENT-REQUIRED header carries the x402 payment requirements (price, USDC asset per chain, payTo address)." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "502": { "description": "Upstream detection failed after payment settled; response includes a refund note. Rare — input is validated before payment is demanded." }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "This OpenAPI specification (free)",
+        "operationId": "getOpenApi",
+        "responses": { "200": { "description": "OpenAPI 3.1 document.", "content": { "application/json": {} } } }
+      }
+    }
+  },
+  "components": {
+    "requestBodies": {
+      "TextBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["text"],
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "description": "The text to analyze. Must contain at least a few words; very short inputs are rejected with 422 before any payment is taken.",
+                  "example": "The rapid advancement of artificial intelligence has transformed numerous industries..."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": { "description": "Missing or non-string text field." },
+      "Unprocessable": { "description": "Text too short to analyze. Rejected before payment." }
+    }
+  }
+}
